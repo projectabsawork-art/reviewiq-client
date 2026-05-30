@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReviewIQ — Explainable ABSA Platform</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+  :root{
+    --accent:#4f6ef7;--accent2:#6c8af9;--accentg:#3a56e8;
+    --green:#22c55e;--red:#ef4444;--amber:#f59e0b;--purple:#a855f7;--conflict:#f472b6;
+    --text:#f0f2ff;--text2:#9095b0;--text3:#5a5e78;
+    --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.12);
+    --card:rgba(17,20,32,0.5);--card2:rgba(22,25,38,0.5);
+    font-family:'Inter',sans-serif;
+  }
+  html,body{background-color:#08090d;background-image:url('background.png');background-size:cover;background-position:center;background-attachment:fixed;color:var(--text);min-height:100vh;overflow-x:hidden;}
+  #root{min-height:100vh;}
+
+  /* LAYOUT */
+  .app-shell{display:flex;height:100vh;overflow:hidden;}
+  .sidebar{width:220px;min-width:220px;background:rgba(10,12,18,0.6);backdrop-filter:blur(24px);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+  .main-content{flex:1;overflow-y:auto;}
+  .page{padding:28px 32px;max-width:1100px;}
+
+  /* SIDEBAR */
+  .sidebar-logo{padding:20px 18px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+  .logo-mark{width:32px;height:32px;background:linear-gradient(135deg,#4f6ef7,#a855f7);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;font-weight:800;font-size:13px;color:#fff;}
+  .logo-text{font-family:'Outfit',sans-serif;font-weight:700;font-size:18px;letter-spacing:-0.3px;}
+  .logo-text span{color:var(--accent2);}
+  .sidebar-nav{padding:12px 10px;flex:1;}
+  .nav-section-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:12px 8px 6px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:500;color:var(--text2);transition:all .2s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left;}
+  .nav-item:hover{background:rgba(255,255,255,0.05);color:var(--text);}
+  .nav-item.active{background:rgba(79,110,247,.15);color:var(--text);border:1px solid rgba(79,110,247,.3);}
+  .nav-icon{width:16px;height:16px;opacity:.7;font-size:14px;display:flex;align-items:center;justify-content:center;}
+  .nav-item.active .nav-icon{opacity:1;color:var(--accent2);}
+  .sidebar-footer{padding:12px 10px;border-top:1px solid var(--border);}
+
+  /* TOP BAR */
+  .topbar{height:60px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:rgba(10,12,18,0.5);backdrop-filter:blur(24px);position:sticky;top:0;z-index:10;}
+  .topbar-title{font-family:'Outfit',sans-serif;font-size:20px;font-weight:700;}
+  .topbar-actions{display:flex;align-items:center;gap:10px;}
+
+  /* BUTTONS */
+  .btn{padding:8px 16px;border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),#3a56e8);color:#fff;box-shadow:0 4px 12px rgba(79,110,247,0.3);}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(79,110,247,0.4);}
+  .btn-ghost{background:rgba(255,255,255,0.03);color:var(--text);border:1px solid var(--border2);backdrop-filter:blur(8px);}
+  .btn-ghost:hover{background:rgba(255,255,255,0.08);}
+  .btn-danger{background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);}
+  .btn-sm{padding:6px 12px;font-size:12px;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important;box-shadow:none!important;}
+  .btn-mic{background:rgba(168,85,247,0.12);color:var(--purple);border:1px solid rgba(168,85,247,0.3);transition:all .2s;}
+  .btn-mic.recording{background:rgba(239,68,68,0.2);color:#f87171;border-color:rgba(239,68,68,0.5);animation:pulse-border 1.2s ease-in-out infinite;}
+  @keyframes pulse-border{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)}50%{box-shadow:0 0 0 6px rgba(239,68,68,0)}}
+
+  /* CARDS */
+  .card{background:var(--card);backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:16px;padding:24px;box-shadow:0 8px 32px rgba(0,0,0,0.2);}
+  .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .card-title{font-family:'Outfit',sans-serif;font-size:16px;font-weight:600;color:var(--text);}
+  .card-sub{font-size:12px;color:var(--text3);margin-top:4px;}
+
+  /* CONFLICT CARD */
+  .conflict-card{background:rgba(244,114,182,0.08);border:1px solid rgba(244,114,182,0.3);border-radius:12px;padding:16px;margin-bottom:16px;}
+  .conflict-badge{background:rgba(244,114,182,0.15);color:var(--conflict);border:1px solid rgba(244,114,182,0.4);font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;display:inline-flex;align-items:center;gap:5px;}
+
+  /* METRIC CARDS */
+  .metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px;}
+  .metric-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:20px;backdrop-filter:blur(16px);transition:transform .2s;}
+  .metric-card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.15);}
+  .metric-label{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+  .metric-value{font-family:'Outfit',sans-serif;font-size:28px;font-weight:700;}
+
+  /* BADGES */
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;}
+  .badge-green{background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);}
+  .badge-red{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3);}
+  .badge-amber{background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.3);}
+  .badge-blue{background:rgba(79,110,247,.15);color:#818cf8;border:1px solid rgba(79,110,247,.3);}
+  .badge-mixed{background:rgba(168,85,247,.15);color:#c084fc;border:1px solid rgba(168,85,247,.3);}
+  .badge-zs{background:rgba(20,184,166,.15);color:#2dd4bf;border:1px solid rgba(20,184,166,.3);}
+  .badge-conflict{background:rgba(244,114,182,.15);color:var(--conflict);border:1px solid rgba(244,114,182,.3);}
+
+  /* TABLES */
+  .data-table{width:100%;border-collapse:collapse;font-size:13px;}
+  .data-table th{text-align:left;padding:12px 14px;color:var(--text3);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);}
+  .data-table td{padding:14px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text2);}
+  .data-table tr:last-child td{border:none;}
+  .data-table tr{transition:background .2s;}
+  .data-table tr:hover td{background:rgba(255,255,255,0.03);}
+
+  /* FORM */
+  .form-group{margin-bottom:18px;}
+  .form-label{display:block;font-size:12px;font-weight:600;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+  .form-input,.form-textarea{width:100%;background:rgba(0,0,0,0.2);border:1px solid var(--border2);color:var(--text);border-radius:10px;padding:12px 16px;font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:all .2s;}
+  .form-input:focus,.form-textarea:focus{border-color:var(--accent);background:rgba(0,0,0,0.4);box-shadow:0 0 0 3px rgba(79,110,247,0.15);}
+  .form-textarea{min-height:100px;resize:vertical;line-height:1.6;}
+
+  /* PROGRESS */
+  .progress-bar{height:6px;border-radius:999px;background:rgba(255,255,255,0.1);overflow:hidden;margin-top:6px;}
+  .progress-fill{height:100%;border-radius:999px;transition:width 1s cubic-bezier(0.4, 0, 0.2, 1);width:0;}
+
+  /* SHAP */
+  .shap-bar{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+  .shap-word{font-size:13px;font-weight:600;min-width:90px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .shap-track{flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,0.08);position:relative;}
+  .shap-fill-pos{position:absolute;height:100%;border-radius:4px;background:linear-gradient(90deg,#22c55e80,#22c55e);transition:width 1s ease-out;width:0;}
+  .shap-fill-neg{position:absolute;right:0;height:100%;border-radius:4px;background:linear-gradient(90deg,#ef444480,#ef4444);transition:width 1s ease-out;width:0;}
+  .shap-val{font-size:12px;font-weight:600;min-width:52px;text-align:right;}
+
+  /* HIGHLIGHT */
+  .highlight-text{font-size:16px;line-height:2.2;font-family:'Inter',sans-serif;}
+  .hl-pos{background:rgba(34,197,94,.25);color:#a7f3d0;border-radius:4px;padding:2px 6px;font-weight:500;cursor:help;}
+  .hl-neg{background:rgba(239,68,68,.25);color:#fecaca;border-radius:4px;padding:2px 6px;font-weight:500;cursor:help;}
+
+  /* SPINNER */
+  .spinner{width:20px;height:20px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* SKELETON */
+  .skeleton{background:linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);background-size:200% 100%;animation:loading 1.5s infinite;border-radius:8px;}
+  @keyframes loading{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+  /* LANDING */
+  .landing-hero{padding:100px 60px;max-width:800px;margin:0 auto;text-align:center;}
+  .landing-title{font-family:'Outfit',sans-serif;font-size:64px;font-weight:800;line-height:1.1;letter-spacing:-2px;margin-bottom:24px;}
+  .landing-title .accent{background:linear-gradient(135deg,#4f6ef7,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .landing-sub{font-size:20px;color:var(--text2);line-height:1.6;margin-bottom:40px;}
+  .landing-cta{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;}
+  .landing-features{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;padding:0 60px 80px;max-width:1100px;margin:0 auto;}
+  .feature-card{background:rgba(17,20,32,0.4);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:24px;transition:transform .3s;}
+  .feature-card:hover{transform:translateY(-4px);border-color:rgba(79,110,247,0.4);}
+  .feature-icon{font-size:28px;margin-bottom:16px;}
+  .feature-title{font-family:'Outfit',sans-serif;font-size:17px;font-weight:700;margin-bottom:8px;}
+  .feature-desc{font-size:13px;color:var(--text2);line-height:1.6;}
+
+  /* COMPARISON */
+  .compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;}
+  .compare-col{background:var(--card);backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+  .compare-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.2);}
+  .compare-row{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:14px;}
+  .compare-row:last-child{border:none;}
+
+  /* UPLOAD */
+  .drop-zone{border:2px dashed var(--border2);border-radius:16px;padding:60px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(0,0,0,0.2);}
+  .drop-zone:hover,.drop-zone.drag{border-color:var(--accent);background:rgba(79,110,247,.08);}
+  .drop-icon{font-size:48px;margin-bottom:16px;opacity:0.8;}
+  .drop-title{font-size:18px;font-weight:600;margin-bottom:8px;font-family:'Outfit',sans-serif;}
+  .drop-sub{font-size:14px;color:var(--text3);}
+
+  /* STATUS DOT */
+  .status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+
+  /* GRID UTILS */
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  .flex{display:flex;align-items:center;}
+  .flex-between{display:flex;align-items:center;justify-content:space-between;}
+  .gap-8{gap:8px;}.gap-12{gap:12px;}
+  .mb-16{margin-bottom:16px;}.mb-24{margin-bottom:24px;}.mt-16{margin-top:16px;}
+  .text-sm{font-size:14px;}.text-xs{font-size:12px;}
+  .text-muted{color:var(--text2);}.text-dim{color:var(--text3);}
+  .fw-600{font-weight:600;}.outfit{font-family:'Outfit',sans-serif;}
+  .text-center{text-align:center;}
+
+  /* TREND CHART */
+  .trend-chart-wrap{width:100%;height:220px;position:relative;}
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar{width:6px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:6px;}
+
+  /* ANIMATE */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  .animate-in{animation:fadeUp .4s cubic-bezier(0.16, 1, 0.3, 1) both;}
+  .delay-1{animation-delay:0.1s;}
+  .delay-2{animation-delay:0.2s;}
+
+  .landing-nav{display:flex;align-items:center;justify-content:space-between;padding:24px 60px;border-bottom:1px solid rgba(255,255,255,0.05);backdrop-filter:blur(10px);}
+
+  /* CALIBRATION NOTE */
+  .calib-note{font-size:11px;color:var(--text3);font-style:italic;margin-top:4px;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+<script>
+const {useState,useEffect,useRef,useCallback,useMemo}=React;
+const h=React.createElement;
+
+const NAV=[
+  {id:'dashboard',label:'Dashboard',icon:'◈'},
+  {id:'analyze',label:'Analyze Review',icon:'◎'},
+  {id:'bulk',label:'Bulk Upload',icon:'⊞'},
+  {id:'product_report',label:'Product Report',icon:'📊'},
+  {id:'history',label:'History',icon:'◷'},
+  {id:'comparison',label:'Compare Products',icon:'⇄'},
+];
+
+// ─── API ────────────────────────────────────────────────────────────────────
+// ⚠ IMPORTANT: Replace YOUR_USERNAME below with your HuggingFace username.
+// The Space must be named exactly "deberta-hybrod" on HuggingFace.
+// Example: if your HF username is "john123", set HF_BASE to:
+//   https://john123-deberta-hybrod.hf.space
+const HF_BASE = 'https://absework-reviewiq-backend.hf.space';
+
+// Gradio 4.x REST API — tries /run/predict first (standard),
+// then falls back to the named /gradio_api/call/predict route.
+const callGradio = async (text) => {
+  // METHOD 1: Gradio standard REST endpoint (/run/predict)
+  try {
+    const r = await fetch(`${HF_BASE}/run/predict`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data: [text.trim()] }),
+    });
+    if (r.ok) {
+      const j = await r.json();
+      // j.data is an array; first element is our dict
+      const result = Array.isArray(j.data) ? j.data[0] : j.data;
+      if (result && typeof result === 'object') return result;
+    }
+  } catch(_){}
+
+  // METHOD 2: Gradio 4 SSE queue API (/gradio_api/call/predict)
+  const queueResp = await fetch(`${HF_BASE}/gradio_api/call/predict`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data: [text.trim()] }),
+  });
+  if (!queueResp.ok) throw new Error(`Backend returned HTTP ${queueResp.status}. The HuggingFace Space may be sleeping — open it once in your browser to wake it up: ${HF_BASE}`);
+  const { event_id } = await queueResp.json();
+
+  return new Promise((resolve, reject) => {
+    const es = new EventSource(`${HF_BASE}/gradio_api/call/predict/${event_id}`);
+    let done = false;
+
+    es.addEventListener('complete', (e) => {
+      if (done) return; done = true; es.close();
+      try {
+        const data = JSON.parse(e.data);
+        const result = Array.isArray(data) ? data[0] : data;
+        resolve(result);
+      } catch(err) { reject(new Error('Failed to parse backend response: ' + err.message)); }
+    });
+
+    es.addEventListener('error', (e) => {
+      // SSE fires 'error' on normal close too — only reject if not done
+      if (done) return;
+      // Wait 200ms to see if 'complete' also fires
+      setTimeout(() => {
+        if (!done) { done = true; es.close(); reject(new Error('Lost connection to backend. Try again — Space may be waking up (cold start ~30s).')); }
+      }, 200);
+    });
+
+    // Safety timeout: 120 seconds
+    setTimeout(() => {
+      if (!done) { done = true; es.close(); reject(new Error('Request timed out after 120s. The HuggingFace Space may be overloaded. Please try again.')); }
+    }, 120000);
+  });
+};
+
+const apiAnalyze = async (text) => {
+  if (!text || !text.trim()) return null;
+  return callGradio(text.trim());
+};
+
+// ─── Sentiment word lists (proxy fallback for non-SHAP words) ───────────────
+const POS_WORDS=['amazing','great','excellent','good','fantastic','love','perfect','awesome','superb','outstanding','impressive','smooth','fast','crisp','bright','solid','reliable','wonderful','brilliant','clear','sharp','sturdy','durable','responsive','vibrant'];
+const NEG_WORDS=['poor','bad','terrible','awful','horrible','slow','worst','disappointing','weak','blurry','overpriced','expensive','hot','lag','laggy','dim','cheap','broken','mediocre','unresponsive','flimsy','dull','grainy','noisy','overheats'];
+
+// ─── Process backend response into rich frontend format ──────────────────────
+const processResult = (text, backend) => {
+  if(backend.error) throw new Error(backend.error);
+
+  const meta    = backend._meta || {};
+  const shapEnabled = meta.shap_enabled || false;
+  const zsEnabled   = meta.zs_enabled   || false;
+  const conflicts   = meta.conflicts     || [];
+  const globalShap  = meta.global_shap   || []; // [{word, shap}]
+
+  // Filter out _meta key
+  const aspectEntries = Object.entries(backend).filter(([k])=>k!=='_meta');
+  if(aspectEntries.length===0) return null;
+
+  const aspects = aspectEntries.map(([key,val])=>{
+    if(val.error) return null;
+    const label     = key.charAt(0).toUpperCase()+key.slice(1);
+    const sentRaw   = (val.sentiment||'').toLowerCase();
+    const sentiment = sentRaw==='positive'?'Positive':sentRaw==='negative'?'Negative':'Neutral';
+    let rawConf     = val.confidence||75;
+    if(rawConf<=1.0) rawConf*=100;   // only scale if backend ever returns 0-1 fraction
+    const confidence = parseFloat(Math.min(rawConf,100).toFixed(1));
+    const valence    = val.valence||0;
+    const shapTokens = val.shap_tokens||{};
+    // Detect if this aspect was found via zero-shot (heuristic: multi-word label from ZS_LABELS)
+    const isZeroShot = key.includes(' ');
+    return {aspect:label,sentiment,confidence,valence,shapTokens,isZeroShot,rawKey:key};
+  }).filter(Boolean);
+
+  if(aspects.length===0) return null;
+
+  // Overall sentiment
+  const pos=aspects.filter(a=>a.sentiment==='Positive').length;
+  const neg=aspects.filter(a=>a.sentiment==='Negative').length;
+  const totalSent=pos+neg;
+  let overall='Neutral';
+  if(totalSent>0){
+    if(pos/totalSent>=0.65) overall='Positive';
+    else if(neg/totalSent>=0.65) overall='Negative';
+    else overall='Mixed';
+  }
+  // Overall score: weighted average of per-aspect sentiment scores (0-100)
+  const overall_score=parseFloat(
+    Math.min(100,Math.max(0,
+      aspects.reduce((s,a)=>{
+        const sc=a.sentiment==='Positive'?a.confidence:a.sentiment==='Negative'?(100-a.confidence):50;
+        return s+sc;
+      },0)/Math.max(aspects.length,1)
+    )).toFixed(1)
+  );
+
+  const posNames=aspects.filter(a=>a.sentiment==='Positive').map(a=>a.aspect).join(', ');
+  const negNames=aspects.filter(a=>a.sentiment==='Negative').map(a=>a.aspect).join(', ');
+  const summary=overall==='Positive'?`Strong positive feedback — customers love the ${posNames}.`
+    :overall==='Negative'?`Negative review — concerns raised about ${negNames}.`
+    :overall==='Mixed'?`Mixed review: praised ${posNames||'some aspects'}, criticised ${negNames||'others'}.`
+    :'Neutral review with no strong sentiment signals.';
+
+  // Build word influence list — prefer real SHAP if available
+  const seen=new Set();
+  let words=[];
+
+  if(shapEnabled && globalShap.length>0){
+    // Use backend SHAP token attributions
+    globalShap.forEach(({word,shap})=>{
+      if(!seen.has(word)&&word.length>1){
+        seen.add(word);
+        // Find which aspect this token most relates to
+        let bestAsp='general', bestAbs=0;
+        aspects.forEach(a=>{
+          const v=a.shapTokens[word.toLowerCase()];
+          if(v!==undefined && Math.abs(v)>bestAbs){bestAbs=Math.abs(v);bestAsp=a.aspect;}
+        });
+        words.push({word,influence:parseFloat(shap),aspect:bestAsp,isReal:true});
+      }
+    });
+  } else {
+    // Fallback: lexicon proxy
+    text.toLowerCase().split(/\W+/).filter(w=>w.length>2).forEach(w=>{
+      if(seen.has(w)) return; seen.add(w);
+      let inf=0,asp='general';
+      if(POS_WORDS.includes(w)) inf=0.8;
+      else if(NEG_WORDS.includes(w)) inf=-0.8;
+      const related=aspects.find(a=>a.rawKey&&(a.rawKey.toLowerCase()===w||a.aspect.toLowerCase()===w));
+      if(related){inf=related.valence*0.9;asp=related.aspect;}
+      if(inf!==0) words.push({word:w,influence:inf,aspect:asp,isReal:false});
+    });
+    words.sort((a,b)=>Math.abs(b.influence)-Math.abs(a.influence));
+  }
+
+  return {overall,overall_score,summary,aspects,words,text,
+          shapEnabled,zsEnabled,conflicts,meta};
+};
+
+// ─── History hook ───────────────────────────────────────────────────────────
+function useHistory(){
+  const [history,setHistory]=useState(()=>{
+    try{const s=localStorage.getItem('reviewiq_history_v2');return s?JSON.parse(s):[];}catch{return [];}
+  });
+
+  const persist=useCallback((items)=>{
+    try{localStorage.setItem('reviewiq_history_v2',JSON.stringify(items));}catch{}
+  },[]);
+
+  const addHistory=useCallback((product,text,parsed)=>{
+    const item={
+      id:Date.now().toString(),
+      date:new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}),
+      ts:Date.now(),
+      product:product||'Unknown Product',
+      text,
+      sentiment:parsed.overall,
+      score:parsed.overall_score,
+      aspects:parsed.aspects.map(a=>`${a.aspect}: ${a.sentiment==='Positive'?'✓':a.sentiment==='Negative'?'✗':'–'}`),
+      aspectDetails:parsed.aspects,
+      hasConflicts:parsed.conflicts&&parsed.conflicts.length>0,
+    };
+    setHistory(prev=>{const n=[item,...prev];persist(n);return n;});
+  },[persist]);
+
+  const addBulkHistory=useCallback((items)=>{
+    setHistory(prev=>{const n=[...items,...prev];persist(n);return n;});
+  },[persist]);
+
+  const clearHistory=useCallback(()=>{
+    setHistory([]);
+    try{localStorage.removeItem('reviewiq_history_v2');}catch{}
+  },[]);
+
+  return {history,addHistory,addBulkHistory,clearHistory};
+}
+
+// ─── Voice Input Hook ────────────────────────────────────────────────────────
+function useVoiceInput(onResult){
+  const [recording,setRecording]=useState(false);
+  const recRef=useRef(null);
+  const cbRef=useRef(onResult);
+  useEffect(()=>{cbRef.current=onResult;},[onResult]);
+  const supported=typeof window!=='undefined'&&('SpeechRecognition' in window||'webkitSpeechRecognition' in window);
+
+  const toggle=useCallback(()=>{
+    if(!supported) return alert('Speech recognition not supported. Please use Chrome or Edge.');
+    if(recording){
+      recRef.current&&recRef.current.stop();
+      setRecording(false);
+    } else {
+      const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+      const rec=new SR();
+      rec.continuous=false;
+      rec.interimResults=true;
+      rec.lang='en-US';
+      rec.onresult=(e)=>{
+        const transcript=Array.from(e.results).map(r=>r[0].transcript).join('');
+        const isFinal=e.results[e.results.length-1].isFinal;
+        cbRef.current(transcript,isFinal);
+      };
+      rec.onend=()=>setRecording(false);
+      rec.onerror=(e)=>{console.warn('Speech error',e.error);setRecording(false);};
+      rec.start();
+      recRef.current=rec;
+      setRecording(true);
+    }
+  },[recording,supported]);
+
+  return {recording,toggle,supported};
+}
+
+// ─── LANDING ─────────────────────────────────────────────────────────────────
+function Landing({onEnter}){
+  const features=[
+    {icon:'🔬',title:'Real SHAP Explanations',desc:'Genuine token-level SHAP attributions from the model — not a formula proxy.'},
+    {icon:'🧩',title:'Zero-Shot Aspect Discovery',desc:'NLI-based implicit aspect detection catches sentiments with no explicit noun.'},
+    {icon:'⚡',title:'Conflict Detection',desc:'Identifies when a review expresses opposing sentiments for the same aspect.'},
+    {icon:'🎤',title:'Voice Input',desc:'Speak your review aloud — Web Speech API transcribes it in real time.'},
+    {icon:'⇄',title:'Competitor Comparison',desc:'Side-by-side aspect analysis with radar chart overlay.'},
+    {icon:'⊞',title:'Bulk CSV Processing',desc:'Upload any number of reviews and get batch aspect-level results.'},
+  ];
+  return h('div',{style:{minHeight:'100vh'}},
+    h('nav',{className:'landing-nav animate-in'},
+      h('div',{className:'flex gap-12'},
+        h('div',{className:'logo-mark'},'IQ'),
+        h('span',{className:'logo-text'},'Review','IQ')
+      ),
+      h('button',{className:'btn btn-primary',onClick:onEnter},'Launch Platform →')
+    ),
+    h('div',{className:'landing-hero animate-in delay-1'},
+      h('div',{style:{display:'inline-flex',alignItems:'center',gap:8,background:'rgba(79,110,247,.12)',border:'1px solid rgba(79,110,247,.3)',borderRadius:999,padding:'6px 16px',fontSize:13,fontWeight:600,color:'#818cf8',marginBottom:32}},'✦ Explainable ABSA · SHAP · Conflict Detection · Voice Input'),
+      h('h1',{className:'landing-title'},'Understand What Customers ',h('span',{className:'accent'},'Really Mean')),
+      h('p',{className:'landing-sub'},'Aspect-level review intelligence with genuine SHAP explainability, implicit aspect discovery, and conflict detection — not just positive or negative.'),
+      h('div',{className:'landing-cta'},
+        h('button',{className:'btn btn-primary',style:{padding:'14px 32px',fontSize:16,borderRadius:12},onClick:onEnter},'Enter Dashboard')
+      )
+    ),
+    h('div',{className:'landing-features animate-in delay-2'},
+      ...features.map(f=>
+        h('div',{className:'feature-card',key:f.title},
+          h('div',{className:'feature-icon'},f.icon),
+          h('div',{className:'feature-title'},f.title),
+          h('div',{className:'feature-desc'},f.desc)
+        )
+      )
+    )
+  );
+}
+
+// ─── SIDEBAR ────────────────────────────────────────────────────────────────
+function Sidebar({page,setPage}){
+  return h('aside',{className:'sidebar'},
+    h('div',{className:'sidebar-logo'},
+      h('div',{className:'logo-mark'},'IQ'),
+      h('div',{className:'logo-text'},'Review','IQ')
+    ),
+    h('nav',{className:'sidebar-nav'},
+      h('div',{className:'nav-section-label'},'Platform'),
+      ...NAV.map(n=>
+        h('button',{key:n.id,className:'nav-item'+(page===n.id?' active':''),onClick:()=>setPage(n.id)},
+          h('span',{className:'nav-icon'},n.icon),n.label
+        )
+      )
+    )
+  );
+}
+
+function Dashboard({setPage,setAnalyzeInput,history}){
+  const total=history.length;
+  const pos=history.filter(h=>h.sentiment==='Positive').length;
+  const neg=history.filter(h=>h.sentiment==='Negative').length;
+  const posP=total?Math.round((pos/total)*100):0;
+  const negP=total?Math.round((neg/total)*100):0;
+  const mixP=Math.max(0,100-posP-negP);
+  const trendRef=useRef(null);
+  const chartRef=useRef(null);
+
+  useEffect(()=>{
+    if(!trendRef.current||!window.Chart||history.length<2) return;
+    if(chartRef.current){chartRef.current.destroy();chartRef.current=null;}
+    const pts=history.slice(0,14).reverse();
+    const labels=pts.map((_,i)=>i===0?'Oldest':i===pts.length-1?'Latest':'');
+    const scores=pts.map(p=>p.score);
+    chartRef.current=new window.Chart(trendRef.current,{
+      type:'line',
+      data:{labels,datasets:[{label:'Overall Score',data:scores,borderColor:'#4f6ef7',backgroundColor:'rgba(79,110,247,0.1)',fill:true,tension:0.4,pointRadius:4,pointBackgroundColor:'#4f6ef7'}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'rgba(255,255,255,0.4)',font:{size:11}}},y:{min:0,max:100,grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'rgba(255,255,255,0.4)',font:{size:11}}}}}
+    });
+    return ()=>{if(chartRef.current){chartRef.current.destroy();chartRef.current=null;}};
+  },[history]);
+
+  return h('div',{className:'page animate-in'},
+    h('div',{className:'metric-grid'},
+      ...[
+        {label:'Total Analyzed',value:total},
+        {label:'Positive',value:posP+'%'},
+        {label:'Negative',value:negP+'%'},
+        {label:'Mixed / Neutral',value:mixP+'%'},
+      ].map(m=>h('div',{className:'metric-card',key:m.label},
+        h('div',{className:'metric-label'},m.label),
+        h('div',{className:'metric-value'},m.value)
+      ))
+    ),
+    h('div',{className:'grid-2',style:{gap:24,marginBottom:24}},
+      h('div',{className:'card'},
+        h('div',{className:'card-header'},h('div',{className:'card-title'},'Score Trend')),
+        history.length<2
+          ?h('div',{className:'text-muted text-sm',style:{padding:'40px 0',textAlign:'center'}},'Analyze 2+ reviews to see a trend.')
+          :h('div',{className:'trend-chart-wrap'},h('canvas',{ref:trendRef}))
+      ),
+      h('div',{className:'card'},
+        h('div',{className:'card-header'},h('div',{className:'card-title'},'Quick Analyze')),
+        h('textarea',{className:'form-textarea',id:'dash-quick-input',placeholder:'Paste a review to analyze…',style:{marginBottom:12}}),
+        h('button',{className:'btn btn-primary',onClick:()=>{
+          const val=document.getElementById('dash-quick-input').value.trim();
+          if(val){setAnalyzeInput(val);}
+          setPage('analyze');
+        }},'Analyze →')
+      )
+    ),
+    h('div',{className:'card'},
+      h('div',{className:'card-header'},h('div',{className:'card-title'},'Recent History')),
+      history.length===0
+        ?h('div',{className:'text-muted text-sm',style:{padding:'20px 0',textAlign:'center'}},'No reviews analyzed yet.')
+        :history.slice(0,6).map((a,i)=>
+          h('div',{key:i,style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 0',borderBottom:i<5?'1px solid var(--border)':'none'}},
+            h('div',{},
+              h('div',{className:'text-sm fw-600',style:{color:'var(--text)'}},a.product),
+              h('div',{className:'text-xs text-dim',style:{marginTop:4,maxWidth:280,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}},a.text)
+            ),
+            h('div',{style:{textAlign:'right'}},
+              h('span',{className:'badge '+(a.sentiment==='Positive'?'badge-green':a.sentiment==='Negative'?'badge-red':'badge-mixed')},a.sentiment),
+              h('div',{className:'text-xs text-dim',style:{marginTop:4}},a.date)
+            )
+          )
+        )
+    )
+  );
+}
+
+// ─── ANALYZE PAGE ────────────────────────────────────────────────────────────
+function AnalyzeReview({initialInput,setLastResult,goExplain,addHistory}){
+  const [text,setText]=useState(initialInput||'');
+  const [loading,setLoading]=useState(false);
+  const [result,setResult]=useState(null);
+  const [error,setError]=useState('');
+  const [mounted,setMounted]=useState(false);
+  useEffect(()=>{setMounted(true);},[]);
+
+  const {recording,toggle:toggleMic,supported:micSupported}=useVoiceInput((transcript,isFinal)=>{
+    setText(transcript);
+  });
+
+  const EXAMPLES=[
+    'The battery life is absolutely amazing, lasts two full days easily. However, the camera is disappointing — photos look blurry at night. The price feels a bit steep.',
+    'Display is stunning and crisp, performance is top-notch. Battery could be better but overall a great buy for the price.',
+    'This phone overheats badly during gaming yet somehow the battery drains in 3 hours. Camera is decent though.',
+  ];
+
+  const analyze=async()=>{
+    if(!text.trim()) return;
+    setLoading(true);setError('');setResult(null);
+    try{
+      const backendData=await apiAnalyze(text);
+      if(!backendData){setError('No specific aspects detected.');setLoading(false);return;}
+      const parsed=processResult(text,backendData);
+      if(parsed){
+        setResult(parsed);
+        setLastResult({text,result:parsed});
+        addHistory('Review',text,parsed);
+      } else {
+        setError('No aspects matched or backend returned empty.');
+      }
+    }catch(e){
+      setError(`❌ ${e.message || 'Unknown error'}
+
+👉 Steps to fix:
+1. Open your HuggingFace Space directly: ${HF_BASE}
+2. Wait for it to fully load (cold start takes ~30–60s)
+3. Come back here and try again
+4. If the URL above is wrong, update HF_BASE in the HTML file to match your Space URL (currently set to: ${HF_BASE})`);
+    }
+    setLoading(false);
+  };
+
+  const sentColor=s=>s==='Positive'?'badge-green':s==='Negative'?'badge-red':s==='Mixed'?'badge-mixed':'badge-blue';
+
+  return h('div',{className:'page animate-in'},
+
+    // Input card
+    h('div',{className:'card mb-24'},
+      h('div',{className:'card-header'},
+        h('div',{},
+          h('div',{className:'card-title'},'Review Analyzer'),
+          h('div',{className:'card-sub'},'Paste or speak any product review for aspect-level SHAP analysis')
+        ),
+        result&&h('button',{className:'btn btn-ghost btn-sm',onClick:()=>goExplain(result,text)},'View Full SHAP Explainability →')
+      ),
+      h('div',{style:{position:'relative'}},
+        h('textarea',{
+          className:'form-textarea',
+          value:text,
+          onChange:e=>setText(e.target.value),
+          placeholder:'Paste a product review here, or click the mic to speak…',
+          style:{minHeight:120,marginBottom:12,paddingRight:52}
+        }),
+        micSupported&&h('button',{
+          className:'btn btn-mic btn-sm',
+          style:{position:'absolute',top:10,right:10},
+          onClick:toggleMic,
+          title:recording?'Stop recording':'Start voice input'
+        },recording?'⏹ Stop':'🎤 Speak')
+      ),
+      recording&&h('div',{style:{fontSize:12,color:'var(--conflict)',marginBottom:8,fontWeight:600}},'● Recording… speak your review now'),
+      h('div',{style:{display:'flex',gap:12,flexWrap:'wrap'}},
+        h('button',{className:'btn btn-primary',onClick:analyze,disabled:loading,style:{padding:'10px 24px'}},
+          loading?h('span',{className:'spinner'}):null,
+          loading?' Analyzing…':'◎ Analyze Review'
+        ),
+        ...EXAMPLES.map((_,i)=>
+          h('button',{key:i,className:'btn btn-ghost btn-sm',onClick:()=>setText(EXAMPLES[i])},'Example '+(i+1))
+        )
+      ),
+      error&&h('div',{style:{marginTop:16,color:'var(--red)',fontSize:14,background:'rgba(239,68,68,0.1)',padding:'12px',borderRadius:8}},error)
+    ),
+
+    // Skeletons
+    loading&&!result&&h('div',{className:'grid-2 animate-in'},
+      h('div',{className:'card skeleton',style:{height:200}}),
+      h('div',{className:'card skeleton',style:{height:200}})
+    ),
+
+    // Results
+    result&&h('div',{className:'animate-in'},
+
+      // Feature badges
+      h('div',{style:{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap'}},
+        result.shapEnabled&&h('span',{className:'badge badge-blue'},'✦ Real SHAP'),
+        result.zsEnabled&&h('span',{className:'badge badge-zs'},'🧩 Zero-Shot NLI'),
+        result.conflicts&&result.conflicts.length>0&&h('span',{className:'badge badge-conflict'},'⚡ '+result.conflicts.length+' Conflict'+(result.conflicts.length>1?'s':'')+' Detected')
+      ),
+
+      // Conflict panel
+      result.conflicts&&result.conflicts.length>0&&h('div',{className:'conflict-card mb-24'},
+        h('div',{style:{display:'flex',alignItems:'center',gap:10,marginBottom:12}},
+          h('span',{className:'conflict-badge'},'⚡ Aspect Conflict Detected'),
+          h('span',{className:'text-xs text-dim'},'The review expresses opposing sentiments for related aspects')
+        ),
+        result.conflicts.map((c,i)=>
+          h('div',{key:i,style:{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderTop:i>0?'1px solid rgba(244,114,182,0.15)':'none'}},
+            h('span',{className:'badge badge-green'},c.sentiment_a),
+            h('span',{className:'text-sm fw-600',style:{color:'var(--text)',textTransform:'capitalize'}},c.aspect_a),
+            h('span',{style:{color:'var(--text3)',fontSize:14}},'vs'),
+            h('span',{className:'badge badge-red'},c.sentiment_b),
+            h('span',{className:'text-sm fw-600',style:{color:'var(--text)',textTransform:'capitalize'}},c.aspect_b),
+            h('span',{className:'text-xs text-dim',style:{marginLeft:'auto'}},'Same semantic cluster')
+          )
+        )
+      ),
+
+      // Overall + Aspect table
+      h('div',{className:'grid-2',style:{gap:24,marginBottom:24}},
+        h('div',{className:'card'},
+          h('div',{className:'card-header'},
+            h('div',{className:'card-title'},'Overall Sentiment'),
+            h('span',{className:'badge '+sentColor(result.overall)},result.overall)
+          ),
+          h('div',{style:{fontSize:56,fontWeight:800,fontFamily:'Outfit',marginBottom:8}},result.overall_score+'%'),
+          h('div',{className:'progress-bar',style:{marginBottom:16,height:8,background:'rgba(255,255,255,0.05)'}},
+            h('div',{className:'progress-fill',style:{width:(mounted?result.overall_score:0)+'%',background:'linear-gradient(90deg,#4f6ef7,#a855f7)'}})
+          ),
+          h('div',{className:'text-sm text-muted',style:{lineHeight:1.6}},result.summary)
+        ),
+        h('div',{className:'card'},
+          h('div',{className:'card-header'},h('div',{className:'card-title'},'Aspect Breakdown')),
+          h('table',{className:'data-table',style:{marginTop:-8}},
+            h('thead',null,h('tr',null,
+              h('th',{},'Aspect'),
+              h('th',{},'Discovery'),
+              h('th',{},'Sentiment'),
+              h('th',{},'Confidence')
+            )),
+            h('tbody',null,
+              ...(result.aspects||[]).map((a,i)=>
+                h('tr',{key:i},
+                  h('td',{style:{fontWeight:600,color:'var(--text)',textTransform:'capitalize'}},a.aspect),
+                  h('td',null,a.isZeroShot
+                    ?h('span',{className:'badge badge-zs',style:{fontSize:10}},'NLI')
+                    :h('span',{className:'badge badge-blue',style:{fontSize:10}},'SpaCy')
+                  ),
+                  h('td',null,h('span',{className:'badge '+sentColor(a.sentiment)},a.sentiment)),
+                  h('td',null,
+                    h('div',{},
+                      h('span',{style:{color:'var(--text2)',fontWeight:500}},a.confidence+'%'),
+                      result.shapEnabled&&h('div',{className:'calib-note'},'calibrated')
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      ),
+
+      // SHAP heatmap
+      h('div',{className:'card'},
+        h('div',{className:'card-header'},
+          h('div',{},
+            h('div',{className:'card-title'},result.shapEnabled?'Real SHAP Token Attribution':'Word Influence Heatmap (Proxy)'),
+            h('div',{className:'card-sub'},result.shapEnabled
+              ?'Token-level SHAP values from the DeBERTa ensemble (positive class − negative class)'
+              :'SHAP backend unavailable — using lexicon proxy. Install shap in the HF Space for real values.')
+          ),
+          h('button',{className:'btn btn-primary btn-sm',onClick:()=>goExplain(result,text)},'Full Explainability View')
+        ),
+        h('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:20}},
+          ...(result.words||[]).slice(0,10).map((w,i)=>
+            h('div',{key:i,className:'shap-bar'},
+              h('span',{className:'shap-word',title:w.aspect},w.word),
+              h('div',{className:'shap-track'},
+                w.influence>=0
+                  ?h('div',{className:'shap-fill-pos',style:{width:(mounted?Math.min(Math.abs(w.influence)*100,100):0)+'%'}})
+                  :h('div',{className:'shap-fill-neg',style:{width:(mounted?Math.min(Math.abs(w.influence)*100,100):0)+'%'}})
+              ),
+              h('span',{className:'shap-val',style:{color:w.influence>=0?'var(--green)':'var(--red)'}},
+                (w.influence>=0?'+':'')+w.influence.toFixed(3)
+              )
+            )
+          )
+        )
+      )
+    )
+  );
+}
+
+// ─── EXPLAINABILITY ───────────────────────────────────────────────────────────
+function Explainability({lastResult}){
+  const demo={
+    text:'The battery is amazing but camera is poor and price feels high.',
+    result:{
+      overall:'Mixed',overall_score:52,shapEnabled:false,zsEnabled:false,conflicts:[],
+      summary:'Mixed sentiments — strong battery but weak camera and expensive.',
+      aspects:[
+        {aspect:'Battery',sentiment:'Positive',confidence:94,valence:0.72,isZeroShot:false,shapTokens:{amazing:0.72,battery:0.45}},
+        {aspect:'Camera',sentiment:'Negative',confidence:91,valence:-0.64,isZeroShot:false,shapTokens:{poor:-0.64,camera:-0.32}},
+        {aspect:'Price',sentiment:'Negative',confidence:82,valence:-0.52,isZeroShot:false,shapTokens:{high:-0.52}},
+      ],
+      words:[
+        {word:'amazing',influence:0.72,aspect:'Battery',isReal:false},
+        {word:'poor',influence:-0.64,aspect:'Camera',isReal:false},
+        {word:'high',influence:-0.52,aspect:'Price',isReal:false},
+        {word:'battery',influence:0.45,aspect:'Battery',isReal:false},
+      ]
+    }
+  };
+  const data=lastResult||demo;
+  const {text,result}=data;
+  const [mounted,setMounted]=useState(false);
+  useEffect(()=>{setMounted(true);},[]);
+
+  const wordMap={};
+  (result.words||[]).forEach(w=>{wordMap[w.word.toLowerCase()]=w;});
+  const tokens=text.split(/(\s+)/);
+  const sentColor=s=>s==='Positive'?'badge-green':s==='Negative'?'badge-red':s==='Mixed'?'badge-mixed':'badge-blue';
+
+  return h('div',{className:'page animate-in'},
+    !lastResult&&h('div',{style:{background:'rgba(245,158,11,.15)',border:'1px solid rgba(245,158,11,.3)',borderRadius:12,padding:'12px 16px',fontSize:14,color:'#fbbf24',marginBottom:24,fontWeight:500}},'⚠ Showing demo data — run an analysis first to see your real SHAP results.'),
+
+    result.shapEnabled&&h('div',{style:{background:'rgba(79,110,247,.1)',border:'1px solid rgba(79,110,247,.3)',borderRadius:12,padding:'12px 16px',fontSize:13,color:'#818cf8',marginBottom:24,fontWeight:500}},'✦ Real SHAP token attributions are shown below — computed by the DeBERTa ensemble using temperature-calibrated confidence (T=1.35).'),
+
+    // Conflict panel in explainability
+    result.conflicts&&result.conflicts.length>0&&h('div',{className:'conflict-card mb-24'},
+      h('div',{className:'fw-600',style:{color:'var(--conflict)',marginBottom:8}},'⚡ Conflict Report'),
+      result.conflicts.map((c,i)=>
+        h('div',{key:i,style:{fontSize:13,color:'var(--text2)',padding:'6px 0',borderTop:i>0?'1px solid rgba(244,114,182,0.15)':'none'}},
+          h('span',{className:'badge badge-green'},c.sentiment_a),' ',c.aspect_a,' conflicts with ',
+          h('span',{className:'badge badge-red'},c.sentiment_b),' ',c.aspect_b,
+          h('span',{className:'text-dim'},' — model flags these as contradictory')
+        )
+      )
+    ),
+
+    // Highlighted text
+    h('div',{className:'card mb-24'},
+      h('div',{className:'card-header'},
+        h('div',{className:'card-title'},'Review — SHAP Token Highlights'),
+        h('div',{className:'card-sub'},result.shapEnabled?'Colors reflect true SHAP attribution values':'Colors reflect lexicon proxy values')
+      ),
+      h('div',{className:'highlight-text',style:{lineHeight:2.4,padding:'8px 0'}},
+        tokens.map((w,i)=>{
+          const clean=w.toLowerCase().replace(/[^a-z]/g,'');
+          const match=wordMap[clean];
+          if(match&&clean){
+            return h('span',{key:i,
+              className:match.influence>0?'hl-pos':'hl-neg',
+              title:`SHAP: ${match.influence>=0?'+':''}${match.influence.toFixed(3)} · ${match.aspect}${match.isReal?' (real)':' (proxy)'}`
+            },w);
+          }
+          return h('span',{key:i},w);
+        })
+      ),
+      h('div',{style:{display:'flex',gap:16,marginTop:20,paddingTop:16,borderTop:'1px solid rgba(255,255,255,0.05)'}},
+        h('span',{style:{display:'flex',alignItems:'center',gap:8,fontSize:13,color:'var(--text3)',fontWeight:500}},
+          h('span',{style:{background:'rgba(34,197,94,.25)',color:'#a7f3d0',borderRadius:4,padding:'2px 8px',fontSize:12}},'word'),' Positive SHAP'),
+        h('span',{style:{display:'flex',alignItems:'center',gap:8,fontSize:13,color:'var(--text3)',fontWeight:500}},
+          h('span',{style:{background:'rgba(239,68,68,.25)',color:'#fecaca',borderRadius:4,padding:'2px 8px',fontSize:12}},'word'),' Negative SHAP')
+      )
+    ),
+
+    h('div',{className:'grid-2',style:{gap:24}},
+      // SHAP bars
+      h('div',{className:'card'},
+        h('div',{className:'card-header'},h('div',{className:'card-title'},result.shapEnabled?'SHAP Attribution Vectors':'Influence Proxy Vectors')),
+        (result.words||[]).slice(0,10).map((w,i)=>
+          h('div',{key:i,className:'shap-bar'},
+            h('span',{className:'shap-word',title:w.aspect},w.word),
+            h('div',{className:'shap-track'},
+              w.influence>=0
+                ?h('div',{className:'shap-fill-pos',style:{width:(mounted?Math.min(Math.abs(w.influence)*100,100):0)+'%'}})
+                :h('div',{className:'shap-fill-neg',style:{width:(mounted?Math.min(Math.abs(w.influence)*100,100):0)+'%'}})
+            ),
+            h('span',{className:'shap-val',style:{color:w.influence>=0?'var(--green)':'var(--red)'}},
+              (w.influence>=0?'+':'')+w.influence.toFixed(3)
+            )
+          )
+        )
+      ),
+      // Confidence bars
+      h('div',{className:'card'},
+        h('div',{className:'card-header'},h('div',{className:'card-title'},'Aspect Model Confidence')),
+        (result.aspects||[]).map((a,i)=>
+          h('div',{key:i,style:{marginBottom:20}},
+            h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}},
+              h('div',{style:{display:'flex',alignItems:'center',gap:8}},
+                h('span',{className:'badge '+sentColor(a.sentiment)},a.sentiment),
+                h('span',{className:'text-sm fw-600'},a.aspect)
+              ),
+              h('div',{style:{textAlign:'right'}},
+                h('span',{className:'text-sm text-muted'},a.confidence+'%'),
+                result.shapEnabled&&h('div',{className:'calib-note'},'T=1.35 calibrated')
+              )
+            ),
+            h('div',{className:'progress-bar'},
+              h('div',{className:'progress-fill',style:{
+                width:(mounted?a.confidence:0)+'%',
+                background:a.sentiment==='Positive'?'var(--green)':a.sentiment==='Negative'?'var(--red)':'var(--amber)'
+              }})
+            )
+          )
+        ),
+        // Per-aspect SHAP tokens
+        result.shapEnabled&&h('div',{style:{marginTop:20,paddingTop:20,borderTop:'1px solid var(--border)'}},
+          h('div',{className:'text-xs text-dim',style:{marginBottom:12,textTransform:'uppercase',letterSpacing:1}},'Top SHAP Tokens Per Aspect'),
+          (result.aspects||[]).map((a,i)=>
+            a.shapTokens&&Object.keys(a.shapTokens).length>0&&h('div',{key:i,style:{marginBottom:12}},
+              h('div',{className:'text-xs fw-600',style:{color:'var(--text2)',marginBottom:4,textTransform:'capitalize'}},a.aspect+':'),
+              h('div',{style:{display:'flex',flexWrap:'wrap',gap:6}},
+                Object.entries(a.shapTokens).slice(0,5).map(([word,val])=>
+                  h('span',{key:word,style:{
+                    fontSize:11,padding:'2px 8px',borderRadius:999,fontWeight:600,
+                    background:val>0?'rgba(34,197,94,0.12)':'rgba(239,68,68,0.12)',
+                    color:val>0?'#4ade80':'#f87171',
+                    border:`1px solid ${val>0?'rgba(34,197,94,0.3)':'rgba(239,68,68,0.3)'}`
+                  }},word,' ',(val>=0?'+':'')+val.toFixed(2))
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  );
+}
+
+// ─── BULK UPLOAD ──────────────────────────────────────────────────────────────
+function BulkUpload({addBulkHistory}){
+  const [stage,setStage]=useState('idle');
+  const [progress,setProgress]=useState(0);
+  const [drag,setDrag]=useState(false);
+  const [results,setResults]=useState([]);
+  const [totalRows,setTotalRows]=useState(0);
+  const fileRef=useRef(null);
+
+  const processFile=(file)=>{
+    setStage('uploading');setProgress(5);
+    window.Papa.parse(file,{
+      header:true,skipEmptyLines:true,
+      complete:async(res)=>{
+        const rows=res.data.filter(r=>r.review_text&&r.review_text.trim()!=='');
+        if(!rows.length){alert('No valid rows. Ensure CSV has a "review_text" column.');setStage('idle');return;}
+        setTotalRows(rows.length);setStage('processing');
+        const items=[];let done=0;
+        for(let i=0;i<rows.length;i++){
+          const txt=rows[i].review_text;
+          const prod=rows[i].product_name||'Bulk Product '+(i+1);
+          try{
+            const b=await apiAnalyze(txt);
+            if(b&&!b.error&&!b.message){
+              const p=processResult(txt,b);
+              if(p) items.push({
+                id:Date.now().toString()+i,
+                date:new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}),
+                ts:Date.now(),product:prod,text:txt,
+                sentiment:p.overall,score:p.overall_score,
+                aspects:[
+                  p.aspects.filter(a=>a.sentiment==='Positive').length?'👍 '+p.aspects.filter(a=>a.sentiment==='Positive').map(a=>a.aspect).slice(0,4).join(', '):'',
+                  p.aspects.filter(a=>a.sentiment==='Negative').length?'👎 '+p.aspects.filter(a=>a.sentiment==='Negative').map(a=>a.aspect).slice(0,4).join(', '):'',
+                ].filter(Boolean),
+                aspectDetails:p.aspects,
+                hasConflicts:p.conflicts&&p.conflicts.length>0,
+              });
+            }
+          }catch(e){console.error(e);}
+          done++;setProgress(Math.round((done/rows.length)*100));
+        }
+        if(items.length) addBulkHistory(items);
+        setResults(items);setStage('done');
+      }
+    });
+  };
+
+  const handleDrop=(e)=>{e.preventDefault();setDrag(false);if(e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);};
+  const handleChange=(e)=>{if(e.target.files[0]) processFile(e.target.files[0]);};
+  const posP=results.length?Math.round((results.filter(r=>r.sentiment==='Positive').length/results.length)*100):0;
+  const negP=results.length?Math.round((results.filter(r=>r.sentiment==='Negative').length/results.length)*100):0;
+  const conflictCount=results.filter(r=>r.hasConflicts).length;
+
+  return h('div',{className:'page animate-in'},
+    stage==='idle'&&h('div',{className:'grid-2',style:{gridTemplateColumns:'2fr 1fr',gap:24}},
+      h('div',{className:'drop-zone'+(drag?' drag':''),
+        onDragOver:e=>{e.preventDefault();setDrag(true)},onDragLeave:()=>setDrag(false),
+        onDrop:handleDrop,onClick:()=>fileRef.current.click()},
+        h('input',{type:'file',accept:'.csv',style:{display:'none'},ref:fileRef,onChange:handleChange}),
+        h('div',{className:'drop-icon'},'⊞'),
+        h('div',{className:'drop-title'},'Drop CSV here'),
+        h('div',{className:'drop-sub',style:{marginBottom:20}},'Process reviews through the ABSA backend with SHAP + conflict detection'),
+        h('button',{className:'btn btn-primary'},'Browse Files')
+      ),
+      h('div',{className:'card'},
+        h('div',{className:'card-title mb-16'},'Required CSV Format'),
+        h('div',{style:{background:'rgba(0,0,0,0.3)',border:'1px solid rgba(255,255,255,0.05)',borderRadius:12,padding:16,fontFamily:'monospace',fontSize:13,color:'var(--text2)',lineHeight:1.8}},
+          h('span',{style:{color:'var(--accent2)'}},'review_text'),', ',h('span',{style:{color:'var(--green)'}},'product_name'),h('br'),
+          '"Great battery life...", Samsung M14',h('br'),'"Camera is poor", iPhone 15'
+        ),
+        h('div',{className:'text-xs text-dim',style:{marginTop:16}},'Conflict detection and SHAP run automatically for each row.')
+      )
+    ),
+    (stage==='uploading'||stage==='processing')&&h('div',{className:'card',style:{textAlign:'center',padding:'80px 40px'}},
+      h('div',{className:'spinner',style:{margin:'0 auto 24px',width:48,height:48,borderWidth:4}}),
+      h('div',{className:'outfit',style:{fontSize:24,fontWeight:700,marginBottom:12}},stage==='uploading'?'Parsing CSV…':'Analyzing reviews…'),
+      h('div',{className:'text-muted text-sm',style:{marginBottom:32}},progress+'% complete'),
+      h('div',{className:'progress-bar',style:{height:12,maxWidth:500,margin:'0 auto',background:'rgba(255,255,255,0.05)'}},
+        h('div',{className:'progress-fill',style:{width:progress+'%',background:'linear-gradient(90deg,#4f6ef7,#a855f7)'}})
+      )
+    ),
+    stage==='done'&&h('div',{className:'animate-in'},
+      h('div',{className:'flex-between',style:{marginBottom:24}},
+        h('div',{className:'flex gap-12'},
+          h('span',{style:{color:'var(--green)',fontSize:24,background:'rgba(34,197,94,0.15)',borderRadius:'50%',width:40,height:40,display:'flex',alignItems:'center',justifyContent:'center'}},'✓'),
+          h('span',{className:'outfit',style:{fontSize:20,fontWeight:700}},'Bulk Analysis Complete')
+        ),
+        h('button',{className:'btn btn-ghost',onClick:()=>{setStage('idle');setProgress(0);setResults([]);}},'Upload Another')
+      ),
+      h('div',{className:'metric-grid',style:{marginBottom:24}},
+        ...[
+          {label:'Processed',value:results.length+'/'+totalRows},
+          {label:'Positive',value:posP+'%'},
+          {label:'Negative',value:negP+'%'},
+          {label:'Conflicts Found',value:conflictCount},
+        ].map(m=>h('div',{key:m.label,className:'metric-card'},
+          h('div',{className:'metric-label'},m.label),
+          h('div',{className:'metric-value outfit'},m.value)
+        ))
+      ),
+      h('div',{className:'card'},
+        h('div',{className:'card-header'},h('div',{className:'card-title'},'Batch Results')),
+        h('table',{className:'data-table'},
+          h('thead',null,h('tr',null,h('th',{},'Product'),h('th',{},'Sentiment'),h('th',{},'Score'),h('th',{},'Conflicts'),h('th',{},'Aspects'))),
+          h('tbody',null,
+            ...results.map(a=>h('tr',{key:a.id},
+              h('td',{style:{fontWeight:600,color:'var(--text)'}},a.product),
+              h('td',null,h('span',{className:'badge '+(a.sentiment==='Positive'?'badge-green':a.sentiment==='Negative'?'badge-red':'badge-mixed')},a.sentiment)),
+              h('td',null,a.score+'%'),
+              h('td',null,a.hasConflicts?h('span',{className:'badge badge-conflict'},'⚡ Yes'):h('span',{className:'text-dim'},'—')),
+              h('td',{className:'text-muted text-sm'},a.aspects.join('  |  '))
+            ))
+          )
+        )
+      )
+    )
+  );
+}
+
+// ─── COMPARISON ───────────────────────────────────────────────────────────────
+function Comparison(){
+  const [t1,setT1]=useState('The battery is great on the iPhone 15 Pro but camera lacks detail. Performance is fast.');
+  const [t2,setT2]=useState('Samsung S24 has a stunning display and amazing camera, but battery is terrible and phone overheats.');
+  const [loading,setLoading]=useState(false);
+  const [data,setData]=useState(null);
+  const [error,setError]=useState('');
+  const canvasRef=useRef(null);
+  const chartRef=useRef(null);
+
+  const compare=async()=>{
+    setLoading(true);setError('');setData(null);
+    try{
+      const [res1,res2]=await Promise.all([apiAnalyze(t1),apiAnalyze(t2)]);
+      if(!res1||!res2||res1.error||res2.error||res1.message||res2.message) throw new Error('Could not extract aspects from one or both reviews.');
+      const p1=processResult(t1,res1);
+      const p2=processResult(t2,res2);
+      const allAsp=new Set([...p1.aspects.map(a=>a.aspect),...p2.aspects.map(a=>a.aspect)]);
+      const compAsp=Array.from(allAsp).map(asp=>{
+        const a1=p1.aspects.find(a=>a.aspect===asp);
+        const a2=p2.aspects.find(a=>a.aspect===asp);
+        const s1=a1?(a1.sentiment==='Positive'?a1.confidence:a1.sentiment==='Negative'?100-a1.confidence:50):50;
+        const s2=a2?(a2.sentiment==='Positive'?a2.confidence:a2.sentiment==='Negative'?100-a2.confidence:50):50;
+        return {name:asp,p1:s1,p2:s2,winner:s1>s2?1:s2>s1?2:0};
+      });
+      setData({p1,p2,compAsp,
+        c1:p1.conflicts||[],c2:p2.conflicts||[],
+        shap1:p1.shapEnabled,shap2:p2.shapEnabled});
+    }catch(e){setError(e.message);}
+    setLoading(false);
+  };
+
+  const sc=v=>v>=75?'var(--green)':v>=45?'var(--amber)':'var(--red)';
+
+  useEffect(()=>{
+    if(!canvasRef.current||!window.Chart||!data) return;
+    if(chartRef.current){chartRef.current.destroy();chartRef.current=null;}
+    chartRef.current=new window.Chart(canvasRef.current,{
+      type:'radar',
+      data:{labels:data.compAsp.map(a=>a.name),datasets:[
+        {label:'Product 1',data:data.compAsp.map(a=>a.p1),fill:true,backgroundColor:'rgba(79,110,247,0.2)',borderColor:'rgb(79,110,247)',pointBackgroundColor:'rgb(79,110,247)',pointBorderColor:'#fff'},
+        {label:'Product 2',data:data.compAsp.map(a=>a.p2),fill:true,backgroundColor:'rgba(34,197,94,0.2)',borderColor:'rgb(34,197,94)',pointBackgroundColor:'rgb(34,197,94)',pointBorderColor:'#fff'},
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,elements:{line:{borderWidth:3}},
+        scales:{r:{angleLines:{color:'rgba(255,255,255,0.1)'},grid:{color:'rgba(255,255,255,0.1)'},pointLabels:{color:'rgba(255,255,255,0.7)',font:{family:'Inter',size:12,weight:'600'}},ticks:{display:false,min:0,max:100}}},
+        plugins:{legend:{position:'bottom',labels:{color:'rgba(255,255,255,0.8)',font:{family:'Inter',size:13}}}}}
+    });
+    return ()=>{if(chartRef.current){chartRef.current.destroy();chartRef.current=null;}};
+  },[data]);
+
+  return h('div',{className:'page animate-in'},
+    h('div',{className:'card mb-24'},
+      h('div',{className:'card-header'},h('div',{className:'card-title'},'Live A/B Review Comparison')),
+      h('div',{className:'grid-2',style:{gap:16,marginBottom:16}},
+        h('textarea',{className:'form-textarea',value:t1,onChange:e=>setT1(e.target.value),placeholder:'Review for Product 1'}),
+        h('textarea',{className:'form-textarea',value:t2,onChange:e=>setT2(e.target.value),placeholder:'Review for Product 2'})
+      ),
+      h('button',{className:'btn btn-primary',onClick:compare,disabled:loading},
+        loading?h('span',{className:'spinner'}):null,loading?' Analyzing…':'Compare Live'
+      ),
+      error&&h('div',{style:{marginTop:16,color:'var(--red)'}},error)
+    ),
+    loading&&!data&&h('div',{className:'grid-2 animate-in'},
+      h('div',{className:'card skeleton',style:{height:300}}),
+      h('div',{className:'card skeleton',style:{height:300}})
+    ),
+    data&&h('div',{className:'animate-in'},
+      // Conflict badges
+      (data.c1.length>0||data.c2.length>0)&&h('div',{style:{display:'flex',gap:12,marginBottom:16}},
+        data.c1.length>0&&h('span',{className:'badge badge-conflict'},'⚡ Product 1: '+data.c1.length+' conflict(s)'),
+        data.c2.length>0&&h('span',{className:'badge badge-conflict'},'⚡ Product 2: '+data.c2.length+' conflict(s)')
+      ),
+      h('div',{className:'grid-2',style:{gap:24}},
+        h('div',{className:'card'},
+          h('div',{className:'card-header'},h('div',{className:'card-title'},'Aspect Radar')),
+          h('div',{style:{width:'100%',height:380,display:'flex',alignItems:'center',justifyContent:'center'}},
+            h('canvas',{ref:canvasRef})
+          )
+        ),
+        h('div',{className:'compare-grid',style:{gridTemplateColumns:'1fr',gridAutoRows:'max-content',gap:20}},
+          h('div',{className:'compare-col'},
+            h('div',{className:'compare-header'},
+              h('div',{style:{width:40,height:40,background:'rgba(79,110,247,.2)',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18}},'◈'),
+              h('div',{},h('div',{style:{fontFamily:'Outfit',fontWeight:700,fontSize:16}},'Product 1'),h('div',{className:'text-xs text-dim'},data.p1.overall_score+'% · '+(data.shap1?'SHAP':'Proxy')))
+            ),
+            ...data.compAsp.map(a=>h('div',{key:a.name+'1',className:'compare-row'},
+              h('span',{className:'text-sm text-muted'},a.name),
+              h('div',{style:{display:'flex',alignItems:'center',gap:8}},
+                a.winner===1&&h('span',{style:{fontSize:12}},'🏆'),
+                h('span',{style:{fontFamily:'Outfit',fontWeight:700,color:sc(a.p1),fontSize:16}},a.p1+'%')
+              )
+            ))
+          ),
+          h('div',{className:'compare-col'},
+            h('div',{className:'compare-header'},
+              h('div',{style:{width:40,height:40,background:'rgba(34,197,94,.2)',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18}},'◈'),
+              h('div',{},h('div',{style:{fontFamily:'Outfit',fontWeight:700,fontSize:16}},'Product 2'),h('div',{className:'text-xs text-dim'},data.p2.overall_score+'% · '+(data.shap2?'SHAP':'Proxy')))
+            ),
+            ...data.compAsp.map(a=>h('div',{key:a.name+'2',className:'compare-row'},
+              h('span',{className:'text-sm text-muted'},a.name),
+              h('div',{style:{display:'flex',alignItems:'center',gap:8}},
+                a.winner===2&&h('span',{style:{fontSize:12}},'🏆'),
+                h('span',{style:{fontFamily:'Outfit',fontWeight:700,color:sc(a.p2),fontSize:16}},a.p2+'%')
+              )
+            ))
+          )
+        )
+      )
+    )
+  );
+}
+
+// ─── HISTORY ─────────────────────────────────────────────────────────────────
+function History({setPage,setAnalyzeInput,history,clearHistory}){
+  const [filter,setFilter]=useState('All');
+  const filtered=filter==='All'?history:history.filter(d=>d.sentiment===filter);
+  const sentColor=s=>s==='Positive'?'badge-green':s==='Negative'?'badge-red':'badge-mixed';
+  const trendRef=useRef(null);
+  const chartRef=useRef(null);
+
+  useEffect(()=>{
+    if(!trendRef.current||!window.Chart||history.length<1) return;
+    if(chartRef.current){chartRef.current.destroy();chartRef.current=null;}
+    const freq={};
+    history.forEach(h=>{(h.aspectDetails||[]).forEach(a=>{freq[a.aspect]=(freq[a.aspect]||0)+1;});});
+    const sorted=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,8);
+    if(!sorted.length) return;
+    chartRef.current=new window.Chart(trendRef.current,{
+      type:'bar',
+      data:{
+        labels:sorted.map(([k])=>k),
+        datasets:[{label:'Mentions',data:sorted.map(([,v])=>v),backgroundColor:'rgba(79,110,247,0.6)',borderColor:'rgb(79,110,247)',borderWidth:1,borderRadius:4}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'rgba(255,255,255,0.5)',font:{size:11}}},
+          y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'rgba(255,255,255,0.5)',font:{size:11}},beginAtZero:true}}}
+    });
+    return ()=>{if(chartRef.current){chartRef.current.destroy();chartRef.current=null;}};
+  },[history]);
+
+  return h('div',{className:'page animate-in'},
+    // Aspect frequency chart
+    history.length>0&&h('div',{className:'card mb-24'},
+      h('div',{className:'card-header'},h('div',{className:'card-title'},'Aspect Frequency Across All Reviews')),
+      h('div',{style:{height:200}},h('canvas',{ref:trendRef}))
+    ),
+    h('div',{className:'flex-between',style:{marginBottom:16}},
+      h('div',{className:'flex',style:{gap:12}},
+        ...['All','Positive','Mixed','Negative'].map(f=>
+          h('button',{key:f,className:'btn '+(filter===f?'btn-primary':'btn-ghost')+' btn-sm',onClick:()=>setFilter(f)},f)
+        )
+      ),
+      history.length>0&&h('button',{className:'btn btn-danger btn-sm',onClick:clearHistory},'Clear History')
+    ),
+    h('div',{className:'card'},
+      history.length===0
+        ?h('div',{className:'text-center',style:{padding:'40px',color:'var(--text3)'}},'No reviews analyzed yet.')
+        :h('table',{className:'data-table',style:{width:'100%'}},
+          h('thead',null,h('tr',null,
+            h('th',{},'Date'),h('th',{},'Review Snippet'),
+            h('th',{},'Sentiment'),h('th',{},'Score'),h('th',{},'Conflicts'),h('th',{},'Action')
+          )),
+          h('tbody',null,
+            ...filtered.map(r=>h('tr',{key:r.id},
+              h('td',{className:'text-dim'},r.date),
+              h('td',{style:{fontWeight:500,color:'var(--text)',maxWidth:220,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}},r.text),
+              h('td',null,h('span',{className:'badge '+sentColor(r.sentiment)},r.sentiment)),
+              h('td',null,
+                h('div',{style:{display:'flex',alignItems:'center',gap:8}},
+                  h('div',{className:'progress-bar',style:{width:60,margin:0}},
+                    h('div',{className:'progress-fill',style:{width:r.score+'%',background:r.sentiment==='Positive'?'var(--green)':r.sentiment==='Negative'?'var(--red)':'var(--amber)'}})
+                  ),
+                  h('span',{className:'text-xs fw-600',style:{color:'var(--text2)'}},r.score+'%')
+                )
+              ),
+              h('td',null,r.hasConflicts?h('span',{className:'badge badge-conflict'},'⚡'):h('span',{className:'text-dim'},'—')),
+              h('td',null,
+                h('button',{className:'btn btn-ghost btn-sm',onClick:()=>{setAnalyzeInput(r.text);setPage('analyze');}},'Re-analyze')
+              )
+            ))
+          )
+        )
+    )
+  );
+}
+
+// ─── PRODUCT REPORT ───────────────────────────────────────────────────────────
+function ProductReport(){
+  const [stage,setStage]=useState('idle');
+  const [progress,setProgress]=useState(0);
+  const [report,setReport]=useState(null);
+  const [drag,setDrag]=useState(false);
+  const fileRef=useRef(null);
+  const canvasRef=useRef(null);
+  const prChartRef=useRef(null);
+
+  const processFile=(file)=>{
+    setStage('uploading');
+    window.Papa.parse(file,{
+      header:true,skipEmptyLines:true,
+      complete:async(res)=>{
+        const rows=res.data.filter(r=>r.review_text&&r.review_text.trim()!=='');
+        if(!rows.length){alert('No valid rows found.');setStage('idle');return;}
+        setStage('processing');
+        const items=[];let done=0;
+        for(let i=0;i<rows.length;i++){
+          try{
+            const b=await apiAnalyze(rows[i].review_text);
+            if(b&&!b.error&&!b.message){const p=processResult(rows[i].review_text,b);if(p) items.push(p);}
+          }catch{}
+          done++;setProgress(Math.round((done/rows.length)*100));
+        }
+        if(!items.length){alert('Failed to parse aspects.');setStage('idle');return;}
+        const total=items.length;
+        const pos=items.filter(r=>r.overall==='Positive').length;
+        const neg=items.filter(r=>r.overall==='Negative').length;
+        const mixed=items.filter(r=>r.overall==='Mixed').length;
+        const avgScore=total?Math.round(items.reduce((s,r)=>s+r.overall_score,0)/total):0;
+        const conflicts=items.reduce((s,r)=>s+(r.conflicts&&r.conflicts.length>0?1:0),0);
+        const aspMap={};
+        items.forEach(r=>r.aspects.forEach(a=>{
+          if(!aspMap[a.aspect]) aspMap[a.aspect]={name:a.aspect,pos:0,neg:0,count:0};
+          if(a.sentiment==='Positive') aspMap[a.aspect].pos++;
+          if(a.sentiment==='Negative') aspMap[a.aspect].neg++;
+          aspMap[a.aspect].count++;
+        }));
+        const allAsp=Object.values(aspMap).map(a=>({...a,netScore:a.pos-a.neg}));
+        const strengths=[...allAsp].filter(a=>a.netScore>0).sort((a,b)=>b.netScore-a.netScore).slice(0,5);
+        const weaknesses=[...allAsp].filter(a=>a.netScore<0).sort((a,b)=>a.netScore-b.netScore).slice(0,5);
+        const radarAsp=[...strengths.slice(0,3),...weaknesses.slice(0,3)];
+        setReport({total,pos,neg,mixed,avgScore,strengths,weaknesses,radarAsp,conflicts});
+        setStage('done');
+      }
+    });
+  };
+
+  useEffect(()=>{
+    if(!canvasRef.current||!window.Chart||!report||!report.radarAsp.length) return;
+    if(prChartRef.current){prChartRef.current.destroy();prChartRef.current=null;}
+    prChartRef.current=new window.Chart(canvasRef.current,{
+      type:'radar',
+      data:{labels:report.radarAsp.map(a=>a.name),datasets:[{label:'Aspect Performance',
+        data:report.radarAsp.map(a=>Math.round((a.pos/a.count)*100)),
+        fill:true,backgroundColor:'rgba(79,110,247,0.2)',borderColor:'rgb(79,110,247)',pointBackgroundColor:'rgb(79,110,247)'}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        scales:{r:{min:0,max:100,ticks:{display:false,stepSize:25},grid:{color:'rgba(255,255,255,0.1)'},pointLabels:{color:'rgba(255,255,255,0.7)',font:{size:12,family:'Inter'}}}},
+        plugins:{legend:{display:false}}}
+    });
+    return ()=>{if(prChartRef.current){prChartRef.current.destroy();prChartRef.current=null;}};
+  },[report,stage]);
+
+  return h('div',{className:'page animate-in'},
+    stage==='idle'&&h('div',{className:'grid-2',style:{gridTemplateColumns:'2fr 1fr',gap:24}},
+      h('div',{className:'drop-zone'+(drag?' drag':''),
+        onDragOver:e=>{e.preventDefault();setDrag(true)},onDragLeave:()=>setDrag(false),
+        onDrop:e=>{e.preventDefault();setDrag(false);if(e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);},
+        onClick:()=>fileRef.current.click()},
+        h('input',{type:'file',accept:'.csv',style:{display:'none'},ref:fileRef,onChange:e=>{if(e.target.files[0]) processFile(e.target.files[0]);}}),
+        h('div',{className:'drop-icon'},'📊'),
+        h('div',{className:'drop-title'},'Single Product Report'),
+        h('div',{className:'drop-sub',style:{marginBottom:20}},'Upload CSV of reviews for one product'),
+        h('button',{className:'btn btn-primary'},'Upload CSV')
+      ),
+      h('div',{className:'card'},
+        h('div',{className:'card-title mb-16'},'CSV Format'),
+        h('div',{style:{background:'rgba(0,0,0,0.3)',border:'1px solid rgba(255,255,255,0.05)',borderRadius:12,padding:16,fontFamily:'monospace',fontSize:13,color:'var(--text2)',lineHeight:1.8}},
+          h('span',{style:{color:'var(--accent2)'}},'review_text'),h('br'),
+          '"Amazing build quality but software is buggy."',h('br'),'"Love the new features, highly recommend."'
+        )
+      )
+    ),
+    (stage==='uploading'||stage==='processing')&&h('div',{className:'card',style:{textAlign:'center',padding:'80px 40px'}},
+      h('div',{className:'spinner',style:{margin:'0 auto 24px',width:48,height:48,borderWidth:4}}),
+      h('div',{className:'outfit',style:{fontSize:24,fontWeight:700,marginBottom:12}},stage==='uploading'?'Parsing CSV…':'Aggregating Reviews ('+progress+'%)'),
+      h('div',{className:'progress-bar',style:{height:12,maxWidth:500,margin:'0 auto',background:'rgba(255,255,255,0.05)'}},
+        h('div',{className:'progress-fill',style:{width:progress+'%',background:'linear-gradient(90deg,#4f6ef7,#a855f7)'}})
+      )
+    ),
+    stage==='done'&&report&&h('div',{className:'animate-in'},
+      h('div',{className:'flex-between',style:{marginBottom:24}},
+        h('div',{className:'flex gap-12'},
+          h('span',{style:{color:'var(--green)',fontSize:24,background:'rgba(34,197,94,0.15)',borderRadius:'50%',width:40,height:40,display:'flex',alignItems:'center',justifyContent:'center'}},'✓'),
+          h('span',{className:'outfit',style:{fontSize:20,fontWeight:700}},'Product Report Complete')
+        ),
+        h('button',{className:'btn btn-ghost',onClick:()=>{setStage('idle');setProgress(0);setReport(null);}},'Generate Another')
+      ),
+      h('div',{className:'grid-2',style:{gap:24,marginBottom:24}},
+        h('div',{className:'card',style:{display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center',padding:40}},
+          h('div',{className:'text-dim text-sm',style:{textTransform:'uppercase',letterSpacing:1,marginBottom:16}},'Overall Product Score'),
+          h('div',{className:'outfit',style:{fontSize:72,fontWeight:800,color:report.avgScore>=75?'var(--green)':report.avgScore>=45?'var(--amber)':'var(--red)',lineHeight:1}},report.avgScore+'%'),
+          h('div',{className:'text-muted mt-16'},'Based on '+report.total+' reviews'),
+          report.conflicts>0&&h('div',{style:{marginTop:12}},h('span',{className:'badge badge-conflict'},'⚡ '+report.conflicts+' conflict reviews'))
+        ),
+        h('div',{className:'card'},
+          h('div',{className:'card-header'},h('div',{className:'card-title'},'Sentiment Distribution')),
+          h('div',{style:{display:'flex',flexDirection:'column',gap:12}},
+            ...[['Positive',report.pos,'var(--green)'],['Negative',report.neg,'var(--red)'],['Mixed',report.mixed,'var(--amber)']].map(([label,count,color])=>
+              h('div',{key:label},
+                h('div',{className:'text-xs text-dim'},label),
+                h('div',{className:'progress-bar',style:{height:8}},
+                  h('div',{className:'progress-fill',style:{width:(report.total?Math.round((count/report.total)*100):0)+'%',background:color}})
+                ),
+                h('div',{className:'text-sm mt-16'},count+' reviews')
+              )
+            )
+          )
+        )
+      ),
+      h('div',{className:'grid-2',style:{gap:24,gridTemplateColumns:'2fr 1fr'}},
+        h('div',{className:'card'},
+          h('div',{className:'card-header'},h('div',{className:'card-title'},'Key Aspect Performance')),
+          h('div',{style:{width:'100%',height:300,display:'flex',alignItems:'center',justifyContent:'center'}},
+            report.radarAsp.length?h('canvas',{ref:canvasRef}):h('div',{className:'text-muted'},'Not enough aspects for radar chart')
+          )
+        ),
+        h('div',{style:{display:'flex',flexDirection:'column',gap:20}},
+          h('div',{className:'compare-col'},
+            h('div',{className:'compare-header'},h('div',{className:'outfit fw-600',style:{color:'var(--green)'}},'Top Strengths')),
+            ...(report.strengths.length?report.strengths.map(a=>h('div',{key:a.name,className:'compare-row'},h('span',{className:'text-sm'},a.name),h('span',{className:'text-xs badge badge-green'},'+'+a.pos+' mentions'))):
+              [h('div',{className:'compare-row'},'No strengths found')])
+          ),
+          h('div',{className:'compare-col'},
+            h('div',{className:'compare-header'},h('div',{className:'outfit fw-600',style:{color:'var(--red)'}},'Top Weaknesses')),
+            ...(report.weaknesses.length?report.weaknesses.map(a=>h('div',{key:a.name,className:'compare-row'},h('span',{className:'text-sm'},a.name),h('span',{className:'text-xs badge badge-red'},'-'+a.neg+' mentions'))):
+              [h('div',{className:'compare-row'},'No weaknesses found')])
+          )
+        )
+      )
+    )
+  );
+}
+
+// ─── APP SHELL ────────────────────────────────────────────────────────────────
+function App(){
+  const [page,setPage]=useState('landing');
+  const [analyzeInput,setAnalyzeInput]=useState('');
+  const [lastResult,setLastResult]=useState(null);
+  const [explainResult,setExplainResult]=useState(null);
+  const [backendStatus,setBackendStatus]=useState('checking');
+  const {history,addHistory,addBulkHistory,clearHistory}=useHistory();
+
+  useEffect(()=>{
+    // Gradio spaces expose /info for health check
+    fetch(HF_BASE+'/info',{method:'GET',signal:AbortSignal.timeout(8000)})
+      .then(r=>{ setBackendStatus(r.ok||r.status===200?'online':'offline'); })
+      .catch(()=>{
+        // Fallback: try /run/predict with empty call to see if space is awake
+        fetch(HF_BASE+'/run/predict',{method:'POST',headers:{'Content-Type':'application/json'},body:'{"data":[""]}',signal:AbortSignal.timeout(8000)})
+          .then(()=>setBackendStatus('online'))
+          .catch(()=>setBackendStatus('offline'));
+      });
+  },[]);
+
+  const goExplain=(result,text)=>{setExplainResult({result,text});setPage('explainability');};
+
+  const PAGE_TITLES={
+    dashboard:'Dashboard Overview',analyze:'Analyze Review',bulk:'Bulk Processor',
+    history:'Analysis History',comparison:'Product Comparison',
+    explainability:'SHAP Explainability',product_report:'Single Product Report'
+  };
+
+  if(page==='landing') return h(Landing,{onEnter:()=>setPage('dashboard')});
+
+  return h('div',{className:'app-shell'},
+    h(Sidebar,{page,setPage}),
+    h('div',{className:'main-content'},
+      h('div',{className:'topbar'},
+        h('div',{className:'topbar-title'},PAGE_TITLES[page]||page),
+        h('div',{className:'topbar-actions'},
+          h('span',{style:{fontSize:13,fontWeight:600,color:'var(--text3)',marginRight:8}},'Hybrid DeBERTa+BiLSTM'),
+          h('span',{style:{fontSize:13,fontWeight:600,color:backendStatus==='online'?'var(--green)':backendStatus==='offline'?'var(--red)':'var(--amber)',display:'flex',alignItems:'center',background:backendStatus==='online'?'rgba(34,197,94,0.1)':backendStatus==='offline'?'rgba(239,68,68,0.1)':'rgba(245,158,11,0.1)',padding:'4px 10px',borderRadius:8}},
+            h('span',{className:'status-dot',style:{marginRight:8,background:backendStatus==='online'?'var(--green)':backendStatus==='offline'?'var(--red)':'var(--amber)'}}),
+            backendStatus==='checking'?'Checking…':backendStatus==='online'?'Model Active':'Model Offline'
+          ),
+          h('button',{className:'btn btn-ghost btn-sm',style:{marginLeft:12},onClick:()=>setPage('landing')},'Exit')
+        )
+      ),
+      page==='dashboard'      &&h(Dashboard,{setPage,setAnalyzeInput,history}),
+      page==='analyze'        &&h(AnalyzeReview,{key:analyzeInput,initialInput:analyzeInput,setLastResult,goExplain,addHistory}),
+      page==='explainability' &&h(Explainability,{lastResult:explainResult}),
+      page==='bulk'           &&h(BulkUpload,{addBulkHistory}),
+      page==='product_report' &&h(ProductReport,{}),
+      page==='comparison'     &&h(Comparison,{}),
+      page==='history'        &&h(History,{setPage,setAnalyzeInput,history,clearHistory})
+    )
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+</script>
+</body>
+</html>
